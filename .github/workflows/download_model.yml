@@ -1,0 +1,51 @@
+name: Download and Package Hugging Face Model
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: '请填写 Hugging Face 模型名称'
+        required: true
+        default: 'distilbert-base-uncased'  # 设置默认的 Hugging Face 模型名称
+
+jobs:
+  download_and_package:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install transformers
+
+    - name: Download Hugging Face model
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        model_name_sanitized="${model_name//\//.}"
+        python -c "
+import transformers
+
+model_name = '${model_name}'
+model = transformers.AutoModel.from_pretrained(model_name)
+model.save_pretrained('./model')
+        "
+
+    - name: Package model
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        model_name_sanitized="${model_name//\//.}"
+        tar -czvf ${model_name_sanitized}.tar.gz ./model
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: huggingface-model
+        path: ${model_name_sanitized}.tar.gz
+        retention-days: 1  # 将保留天数设置为 1 天，最多可设置 90 天
