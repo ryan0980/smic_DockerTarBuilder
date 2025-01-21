@@ -23,6 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         curl -fsSL https://ollama.com/install.sh | sh
+        echo $OLLAMA_MODELS
        
     - name: Download ollama model
       run: |
@@ -31,6 +32,7 @@ jobs:
         
     - name: Package model
       run: |
+        find / -name bge-m3
         tar -czvf ${model_name}.tar.gz ~/.ollama/models
 
     - name: Upload artifact
