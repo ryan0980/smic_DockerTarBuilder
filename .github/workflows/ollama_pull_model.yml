@@ -32,6 +32,7 @@ jobs:
         
     - name: Package model
       run: |
+        model_name="${{ github.event.inputs.model_name }}"
         tar -czvf "${{ github.workspace }}/${model_name}.tar.gz" /usr/share/ollama/.ollama/models
         ls -a
 
