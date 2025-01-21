@@ -32,8 +32,7 @@ jobs:
         
     - name: Package model
       run: |
-        find / -name bge-m3
-        tar -czvf ${model_name}.tar.gz ~/.ollama/models
+        tar -czvf ${model_name}.tar.gz /usr/share/ollama/.ollama/models
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
