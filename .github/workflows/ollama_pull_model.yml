@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       model_name:
-        description: '请填写 Hugging Face 模型名称'
+        description: '请填写 Ollama 模型名称'
         required: true
-        default: 'BAAI/bge-m3'  # 设置默认的 Hugging Face 模型名称
+        default: 'bge-m3'  # 设置默认的 Ollama 模型名称
 
 jobs:
   download_and_package:
