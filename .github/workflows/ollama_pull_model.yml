@@ -33,7 +33,7 @@ jobs:
     - name: Package model
       run: |
         tar -czvf ${model_name}.tar.gz /usr/share/ollama/.ollama/models
-        ll
+        ls -a
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
