@@ -22,7 +22,7 @@ jobs:
     - name: Download website
       run: |
         url="${{ github.event.inputs.url }}"
-        httrack ${url}  +* -r3 --path ./website
+        httrack ${url} --path ./website --mirrorlinks
 
     - name: Package model
       run: |
