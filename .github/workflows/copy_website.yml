@@ -1,4 +1,4 @@
-name: Download and Package Hugging Face Model
+name: Download and Package Website
 on:
   workflow_dispatch:
     inputs:
@@ -17,7 +17,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt-get install httrack
+        sudo apt-get install httrack
 
     - name: Download website
       run: |
