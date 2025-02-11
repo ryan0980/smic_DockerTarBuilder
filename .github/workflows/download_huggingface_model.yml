@@ -1,0 +1,69 @@
+name: Download and Package Hugging Face Model
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: '请填写 Hugging Face 模型名称'
+        required: true
+        default: 'distilbert-base-uncased'  # 设置默认的 Hugging Face 模型名称
+
+jobs:
+  download_and_package:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+
+    - name: Install Git LFS
+      run: |
+        sudo apt-get update
+        sudo apt-get install git-lfs
+        git lfs install
+
+    - name: Download Hugging Face model with Git LFS
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        model_dir="./model"
+        git clone https://huggingface.co/${model_name} ${model_dir}
+        cd ${model_dir}
+        git lfs pull
+
+    - name: Package model
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        model_name_sanitized="${model_name//\//.}"
+        tar_dir="tar_parts"
+        mkdir -p $tar_dir
+        model_dir="./model"
+        part_size=20480  # 20GB in MB
+    
+        current_part=1
+        current_size=0
+        current_tar="$tar_dir/${model_name_sanitized}_part${current_part}.tar"
+    
+        for file in $(find $model_dir -type f); do
+            file_size=$(du -sm "$file" | cut -f1)
+            new_size=$((current_size + file_size))
+    
+            if [ $new_size -gt $part_size ]; then
+                current_part=$((current_part + 1))
+                current_tar="$tar_dir/${model_name_sanitized}_part${current_part}.tar"
+                current_size=0
+            fi
+    
+            tar -rvf "$current_tar" -C "$(dirname "$file")" "$(basename "$file")"
+            current_size=$new_size
+        done
+    
+        for tar_file in $tar_dir/*.tar; do
+            gzip "$tar_file"
+        done
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: huggingface-model
+        path: ${{ github.workspace }}/tar_parts/*.tar.gz
+        retention-days: 5  # 将保留天数设置为 1 天，最多可设置 90 天
