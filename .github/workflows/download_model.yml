@@ -35,11 +35,36 @@ jobs:
       run: |
         model_name="${{ github.event.inputs.model_name }}"
         model_name_sanitized="${model_name//\//.}"
-        tar -czvf ${model_name_sanitized}.tar.gz ./model
+        tar_dir="tar_parts"
+        mkdir -p $tar_dir
+        model_dir="./model"
+        part_size=20480  # 20GB in MB
+    
+        current_part=1
+        current_size=0
+        current_tar="$tar_dir/${model_name_sanitized}_part${current_part}.tar"
+    
+        for file in $(find $model_dir -type f); do
+            file_size=$(du -sm "$file" | cut -f1)
+            new_size=$((current_size + file_size))
+    
+            if [ $new_size -gt $part_size ]; then
+                current_part=$((current_part + 1))
+                current_tar="$tar_dir/${model_name_sanitized}_part${current_part}.tar"
+                current_size=0
+            fi
+    
+            tar -rvf "$current_tar" -C "$(dirname "$file")" "$(basename "$file")"
+            current_size=$new_size
+        done
+    
+        for tar_file in $tar_dir/*.tar; do
+            gzip "$tar_file"
+        done
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: huggingface-model
-        path: ${{ github.workspace }}/*.tar.gz
-        retention-days: 1  # 将保留天数设置为 1 天，最多可设置 90 天
+        path: ${{ github.workspace }}/tar_parts/*.tar.gz
+        retention-days: 5  # 将保留天数设置为 1 天，最多可设置 90 天
