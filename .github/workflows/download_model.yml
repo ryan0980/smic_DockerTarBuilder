@@ -29,7 +29,7 @@ jobs:
       run: |
         model_name="${{ github.event.inputs.model_name }}"
         model_name_sanitized="${model_name//\//.}"
-        python -c "import transformers;model_name = '${model_name}';model = transformers.AutoModel.from_pretrained(model_name,trust_remote_code=True);model.save_pretrained('./model')"
+        python -c "import transformers;model_name = '${model_name}';try:model = transformers.AutoModel.from_pretrained(model_name,trust_remote_code=True);except: transformers.AutoModelForCausalLM.from_pretrained(model_name,trust_remote_code=True);model.save_pretrained('./model')"
 
     - name: Package model
       run: |
