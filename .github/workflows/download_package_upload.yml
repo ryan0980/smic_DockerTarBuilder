@@ -36,7 +36,7 @@ jobs:
         model_name_sanitized="${model_name//\//.}"
         model_url="https://huggingface.co/${model_name}/resolve/main"
         model_dir="/mnt/model"
-        tar_dir="tar_parts"
+        tar_dir="/mnt/tar_parts"
         sudo mkdir -p $tar_dir
         part_size=20480  # 10GB in MB
         current_part=1
