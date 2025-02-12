@@ -49,11 +49,10 @@ jobs:
             
             if [ $new_size -gt $part_size ]; then
                 sudo gzip "$current_tar"
-                sudo gh api \
-                  -X POST \
-                  -F "file=@${current_tar}.gz" \
-                  -F "name=huggingface-model" \
-                  -F "path=${current_tar}.gz"
+                sudo gh action upload-artifact \
+                  --name "huggingface-model-$(basename $file)" \
+                  --path "${current_tar}.gz" \
+                  --retention-days 5
                 sudo rm "${current_tar}.gz"
                 
                 current_part=$((current_part + 1))
@@ -69,16 +68,7 @@ jobs:
         done
     
         sudo gzip "$current_tar"
-        sudo gh api \
-          -X POST \
-          -F "file=@${current_tar}.gz" \
-          -F "name=huggingface-model" \
-          -F "path=${current_tar}.gz"
-
-    - name: Upload remaining artifact
-      run: |
-        gh api \
-          -X POST \
-          -F "file=@${current_tar}" \
-          -F "name=huggingface-model" \
-          -F "path=$current_tar"
+        sudo gh action upload-artifact \
+            --name "huggingface-model-$(basename $file)" \
+            --path "${current_tar}.gz" \
+            --retention-days 5
