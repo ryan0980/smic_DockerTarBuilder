@@ -36,14 +36,14 @@ jobs:
         model_url="https://huggingface.co/${model_name}/resolve/main"
         model_dir="/mnt/model"
         tar_dir="tar_parts"
-        mkdir -p $tar_dir
+        sudo mkdir -p $tar_dir
         part_size=20480  # 10GB in MB
         current_part=1
         current_size=0
         current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
         
         cat file_list.txt | while read file; do
-            file_size=$(wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
+            file_size=$(sudo wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
             new_size=$((current_size + file_size / 1048576))
             
             if [ $new_size -gt $part_size ]; then
@@ -53,17 +53,17 @@ jobs:
                   -F "file=@${current_tar}" \
                   -F "name=huggingface-model" \
                   -F "path=$current_tar"
-                rm $current_tar
+                sudo rm $current_tar
                 
                 current_part=$((current_part + 1))
                 current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
                 current_size=0
             fi
             
-            wget -P $model_dir "$model_url/$file"
-            tar -rvf - "$model_dir/$file" | gzip >> "$current_tar"
+            sudo wget -P $model_dir "$model_url/$file"
+            sudo tar -rvf - "$model_dir/$file" | gzip >> "$current_tar"
             current_size=$new_size
-            rm -f "$model_dir/$file"
+            sudo rm -f "$model_dir/$file"
         done
 
     - name: Upload remaining artifact
