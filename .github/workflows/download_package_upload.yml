@@ -15,28 +15,37 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install wget and zip
+    - name: Install necessary tools
       run: |
         sudo apt-get update
-        sudo apt-get install wget zip
+        sudo apt-get install wget git-lfs zip
 
-    - name: Download Hugging Face model files and handle capacity
+    - name: Get model files list
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        repo_url="https://huggingface.co/${model_name}.git"
+        git clone --depth=1 $repo_url repo
+        cd repo
+        git lfs pull
+        git ls-tree -r HEAD --name-only > ../file_list.txt
+        cd ..
+        rm -rf repo
+
+    - name: Download files incrementally and handle capacity
       run: |
         model_name="${{ github.event.inputs.model_name }}"
         model_url="https://huggingface.co/${model_name}/resolve/main"
-        model_dir="./model"
+        model_dir="/mnt/model"
         tar_dir="tar_parts"
         mkdir -p $tar_dir
-        part_size=10240  # 10GB in MB
+        part_size=20480  # 10GB in MB
         current_part=1
         current_size=0
         current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
         
-        wget -r -np -nH -A "*.bin,*.json,*.txt" --cut-dirs=2 "${model_url}" -P $model_dir
-        
-        find $model_dir -type f | while read file; do
-            file_size=$(du -sm "$file" | cut -f1)
-            new_size=$((current_size + file_size))
+        cat file_list.txt | while read file; do
+            file_size=$(wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
+            new_size=$((current_size + file_size / 1048576))
             
             if [ $new_size -gt $part_size ]; then
                 echo "Uploading part ${current_part}"
@@ -52,9 +61,10 @@ jobs:
                 current_size=0
             fi
             
-            tar -rvf - "$file" | gzip >> "$current_tar"
+            wget -P $model_dir "$model_url/$file"
+            tar -rvf - "$model_dir/$file" | gzip >> "$current_tar"
             current_size=$new_size
-            rm -f "$file"
+            rm -f "$model_dir/$file"
         done
 
     - name: Upload remaining artifact
