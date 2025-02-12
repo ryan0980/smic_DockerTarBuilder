@@ -15,10 +15,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install necessary tools
+    - name: Install necessary tools and Node.js packages
       run: |
         sudo apt-get update
-        sudo apt-get install wget git-lfs zip
+        sudo apt-get install -y wget git-lfs zip jq
+        npm install @actions/artifact
 
     - name: Get model files list without downloading large files
       run: |
@@ -29,46 +30,61 @@ jobs:
         git ls-tree -r HEAD --name-only > ../file_list.txt
         cd ..
         rm -rf repo
-        
-    - name: Download files incrementally and handle capacity
+
+    - name: Create JavaScript script for downloading and uploading artifacts
       run: |
-        model_name="${{ github.event.inputs.model_name }}"
-        model_name_sanitized="${model_name//\//.}"
-        model_url="https://huggingface.co/${model_name}/resolve/main"
-        model_dir="/mnt/model"
-        tar_dir="/mnt/tar_parts"
-        sudo mkdir -p $tar_dir
-        part_size=20480  # 10GB in MB
-        current_part=1
-        current_size=0
-        current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar"
-        
-        cat file_list.txt | while read file; do
-            file_size=$(sudo wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
-            new_size=$((current_size + file_size / 1048576))
-            
-            if [ $new_size -gt $part_size ]; then
-                sudo gzip "$current_tar"
-                sudo gh action upload-artifact \
-                  --name "huggingface-model-$(basename $file)" \
-                  --path "${current_tar}.gz" \
-                  --retention-days 5
-                sudo rm "${current_tar}.gz"
-                
-                current_part=$((current_part + 1))
-                current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar"
-                current_size=0
-            fi
-            
-            sudo wget --progress=bar:force:noscroll -P $model_dir "$model_url/$file"
-            filename=$(basename "$file")
-            sudo tar -cvf "$current_tar" "$model_dir/$filename"
-            current_size=$new_size
-            sudo rm -f "$model_dir/$filename"
-        done
-    
-        sudo gzip "$current_tar"
-        sudo gh action upload-artifact \
-            --name "huggingface-model-$(basename $file)" \
-            --path "${current_tar}.gz" \
-            --retention-days 5
+        echo "const { DefaultArtifactClient } = require('@actions/artifact');
+        const artifactClient = new DefaultArtifactClient();
+        const fs = require('fs');
+        const { execSync } = require('child_process');
+
+        const model_name = process.env.MODEL_NAME;
+        const model_url = \`https://huggingface.co/\${model_name}/resolve/main\`;
+        const model_dir = '/mnt/model';
+        const tar_dir = '/mnt/tar_parts';
+        const part_size = 20480;  // 20GB in MB
+        let current_part = 1;
+        let current_size = 0;
+        let current_tar = \`\${tar_dir}/\${model_name.replace(/\//g, '.')}_part\${current_part}.tar\`;
+
+        if (!fs.existsSync(model_dir)) {
+          fs.mkdirSync(model_dir, { recursive: true });
+        }
+        if (!fs.existsSync(tar_dir)) {
+          execSync('sudo mkdir -p ' + tar_dir);
+        }
+
+        const fileList = execSync(\`curl -s 'https://api.github.com/repos/huggingface/\${model_name}/git/trees/main?recursive=1' | jq -r '.tree[] | select(.type==\"blob\") | .path'\`).toString().split('\\n');
+
+        for (const file of fileList) {
+          if (file) {
+            const file_size = parseInt(execSync(\`wget --spider \${model_url}/\${file} 2>&1 | grep Length | awk '{print $2}'\`), 10);
+            const new_size = current_size + file_size / 1048576;
+
+            if (new_size > part_size) {
+              console.log(\`Uploading part \${current_part}\`);
+              artifactClient.uploadArtifact(\`huggingface-model-part\${current_part}\`, [\`\${current_tar}.gz\`], { retentionDays: 5 });
+              execSync('sudo rm ' + \`\${current_tar}.gz\`);
+
+              current_part += 1;
+              current_tar = \`\${tar_dir}/\${model_name.replace(/\//g, '.')}_part\${current_part}.tar\`;
+              current_size = 0;
+            }
+
+            execSync(\`sudo wget --progress=bar:force:noscroll -P \${model_dir} \${model_url}/\${file}\`);
+            const filename = file.split('/').pop();
+            execSync(\`sudo tar -rvf \${current_tar} -C \${model_dir} \${filename}\`);
+            current_size = new_size;
+            execSync(\`sudo rm -f \${model_dir}/\${filename}\`);
+          }
+        }
+
+        artifactClient.uploadArtifact(\`huggingface-model-part\${current_part}\`, [\`\${current_tar}.gz\`], { retentionDays: 5 });
+        execSync('sudo rm ' + \`\${current_tar}.gz\`);
+        " > download_upload.js
+
+    - name: Run the JavaScript script
+      run: node download_upload.js
+      env:
+        MODEL_NAME: ${{ github.event.inputs.model_name }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
