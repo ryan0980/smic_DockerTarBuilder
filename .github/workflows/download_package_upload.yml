@@ -33,39 +33,45 @@ jobs:
     - name: Download files incrementally and handle capacity
       run: |
         model_name="${{ github.event.inputs.model_name }}"
-        model_name_sanitized="${model_name//\//.}"
         model_url="https://huggingface.co/${model_name}/resolve/main"
         model_dir="/mnt/model"
         tar_dir="/mnt/tar_parts"
         sudo mkdir -p $tar_dir
-        part_size=20480  # 10GB in MB
+        part_size=10240  # 10GB in MB
         current_part=1
         current_size=0
-        current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar.gz"
+        current_tar="${tar_dir}/${model_name}_part${current_part}.tar"
         
         cat file_list.txt | while read file; do
             file_size=$(sudo wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
             new_size=$((current_size + file_size / 1048576))
             
             if [ $new_size -gt $part_size ]; then
-                echo "Uploading part ${current_part}"
-                gh api \
+                sudo gzip "$current_tar"
+                sudo gh api \
                   -X POST \
-                  -F "file=@${current_tar}" \
+                  -F "file=@${current_tar}.gz" \
                   -F "name=huggingface-model" \
-                  -F "path=$current_tar"
-                sudo rm $current_tar
+                  -F "path=${current_tar}.gz"
+                sudo rm "${current_tar}.gz"
                 
                 current_part=$((current_part + 1))
-                current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar.gz"
+                current_tar="${tar_dir}/${model_name}_part${current_part}.tar"
                 current_size=0
             fi
             
             sudo wget -P $model_dir "$model_url/$file"
-            sudo tar -rvf - "$model_dir/$file" | sudo gzip >> "$current_tar"
+            sudo tar -rvf "$current_tar" -C "$(dirname "$model_dir/$file")" "$(basename "$model_dir/$file")"
             current_size=$new_size
             sudo rm -f "$model_dir/$file"
         done
+    
+        sudo gzip "$current_tar"
+        sudo gh api \
+          -X POST \
+          -F "file=@${current_tar}.gz" \
+          -F "name=huggingface-model" \
+          -F "path=${current_tar}.gz"
 
     - name: Upload remaining artifact
       run: |
