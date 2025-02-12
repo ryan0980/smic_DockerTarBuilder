@@ -38,7 +38,7 @@ jobs:
         model_dir="/mnt/model"
         tar_dir="/mnt/tar_parts"
         sudo mkdir -p $tar_dir
-        part_size=10240  # 10GB in MB
+        part_size=20480  # 10GB in MB
         current_part=1
         current_size=0
         current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar"
@@ -62,9 +62,10 @@ jobs:
             fi
             
             sudo wget -P $model_dir "$model_url/$file"
-            sudo tar -cvf "$current_tar" "$model_dir/$file"
+            filename=$(basename "$file")
+            sudo tar -cvf "$current_tar" "$model_dir/$filename"
             current_size=$new_size
-            sudo rm -f "$model_dir/$file"
+            sudo rm -f "$model_dir/$filename"
         done
     
         sudo gzip "$current_tar"
