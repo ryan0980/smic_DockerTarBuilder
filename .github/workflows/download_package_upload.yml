@@ -22,12 +22,14 @@ jobs:
 
     - name: Get model files list without downloading large files
       run: |
-        REPO_OWNER="huggingface"
-        REPO_NAME="${{ github.event.inputs.model_name }}"
-        BRANCH="main"
+        model_name="${{ github.event.inputs.model_name }}"
+        repo_url="https://huggingface.co/${model_name}.git"
+        GIT_LFS_SKIP_SMUDGE=1 git clone $repo_url repo
+        cd repo
+        git ls-tree -r HEAD --name-only > ../file_list.txt
+        cd ..
+        rm -rf repo
         
-        curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/trees/$BRANCH?recursive=1" | jq -r '.tree[] | select(.type=="blob") | .path' >
-
     - name: Download files incrementally and handle capacity
       run: |
         model_name="${{ github.event.inputs.model_name }}"
