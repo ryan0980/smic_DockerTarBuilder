@@ -61,7 +61,7 @@ jobs:
             fi
             
             sudo wget -P $model_dir "$model_url/$file"
-            sudo tar -rvf "$current_tar" -C "$(dirname "$model_dir/$file")" "$(basename "$model_dir/$file")"
+            sudo tar -cvf "$current_tar" "$model_url/$file"
             current_size=$new_size
             sudo rm -f "$model_dir/$file"
         done
