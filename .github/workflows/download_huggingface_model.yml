@@ -21,6 +21,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install git-lfs
         git lfs install
+        df -h
 
     - name: Download Hugging Face model with Git LFS
       run: |
