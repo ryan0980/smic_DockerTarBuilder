@@ -33,6 +33,7 @@ jobs:
     - name: Download files incrementally and handle capacity
       run: |
         model_name="${{ github.event.inputs.model_name }}"
+        model_name_sanitized="${model_name//\//.}"
         model_url="https://huggingface.co/${model_name}/resolve/main"
         model_dir="/mnt/model"
         tar_dir="tar_parts"
@@ -40,7 +41,7 @@ jobs:
         part_size=20480  # 10GB in MB
         current_part=1
         current_size=0
-        current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
+        current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar.gz"
         
         cat file_list.txt | while read file; do
             file_size=$(sudo wget --spider "$model_url/$file" 2>&1 | grep Length | awk '{print $2}')
@@ -56,7 +57,7 @@ jobs:
                 sudo rm $current_tar
                 
                 current_part=$((current_part + 1))
-                current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
+                current_tar="${tar_dir}/${model_name_sanitized}_part${current_part}.tar.gz"
                 current_size=0
             fi
             
