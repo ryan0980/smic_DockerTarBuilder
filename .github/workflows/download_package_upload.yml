@@ -20,13 +20,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install wget git-lfs zip
 
-    - name: Get model files list
+    - name: Get model files list without downloading large files
       run: |
         model_name="${{ github.event.inputs.model_name }}"
         repo_url="https://huggingface.co/${model_name}.git"
-        git clone --depth=1 $repo_url repo
+        git clone $repo_url repo
         cd repo
-        git lfs pull
+        git lfs fetch --exclude="*"
+        git lfs pull --include=""
         git ls-tree -r HEAD --name-only > ../file_list.txt
         cd ..
         rm -rf repo
