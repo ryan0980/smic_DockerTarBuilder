@@ -54,7 +54,7 @@ jobs:
           execSync('sudo mkdir -p ' + tar_dir);
         }
 
-        const fileList = execSync(\`curl -s 'https://api.github.com/repos/huggingface/\${model_name}/git/trees/main?recursive=1' | jq -r '.tree[] | select(.type==\"blob\") | .path'\`).toString().split('\\n');
+        const fileList = fs.readFileSync('file_list.txt', 'utf8').split('\\n');
 
         for (const file of fileList) {
           if (file) {
