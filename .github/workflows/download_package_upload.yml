@@ -48,7 +48,7 @@ jobs:
         let current_tar = \`\${tar_dir}/\${model_name.replace(/\//g, '.')}_part\${current_part}.tar\`;
 
         if (!fs.existsSync(model_dir)) {
-          fs.mkdirSync(model_dir, { recursive: true });
+          execSync('sudo mkdir -p ' + model_dir);
         }
         if (!fs.existsSync(tar_dir)) {
           execSync('sudo mkdir -p ' + tar_dir);
