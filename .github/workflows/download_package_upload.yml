@@ -60,7 +60,7 @@ jobs:
                 current_size=0
             fi
             
-            sudo wget --progress=bar:force -P $model_dir "$model_url/$file"
+            sudo wget --progress=bar:force:noscroll -P $model_dir "$model_url/$file"
             filename=$(basename "$file")
             sudo tar -cvf "$current_tar" "$model_dir/$filename"
             current_size=$new_size
