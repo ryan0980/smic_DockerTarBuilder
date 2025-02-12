@@ -1,0 +1,66 @@
+name: Download&Package&Upload Hugging Face Model
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: '请填写 Hugging Face 模型名称'
+        required: true
+        default: 'distilbert-base-uncased'  # 设置默认的 Hugging Face 模型名称
+
+jobs:
+  download_and_package:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install wget and zip
+      run: |
+        sudo apt-get update
+        sudo apt-get install wget zip
+
+    - name: Download Hugging Face model files and handle capacity
+      run: |
+        model_name="${{ github.event.inputs.model_name }}"
+        model_url="https://huggingface.co/${model_name}/resolve/main"
+        model_dir="./model"
+        tar_dir="tar_parts"
+        mkdir -p $tar_dir
+        part_size=10240  # 10GB in MB
+        current_part=1
+        current_size=0
+        current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
+        
+        wget -r -np -nH -A "*.bin,*.json,*.txt" --cut-dirs=2 "${model_url}" -P $model_dir
+        
+        find $model_dir -type f | while read file; do
+            file_size=$(du -sm "$file" | cut -f1)
+            new_size=$((current_size + file_size))
+            
+            if [ $new_size -gt $part_size ]; then
+                echo "Uploading part ${current_part}"
+                gh api \
+                  -X POST \
+                  -F "file=@${current_tar}" \
+                  -F "name=huggingface-model" \
+                  -F "path=$current_tar"
+                rm $current_tar
+                
+                current_part=$((current_part + 1))
+                current_tar="${tar_dir}/${model_name}_part${current_part}.tar.gz"
+                current_size=0
+            fi
+            
+            tar -rvf - "$file" | gzip >> "$current_tar"
+            current_size=$new_size
+            rm -f "$file"
+        done
+
+    - name: Upload remaining artifact
+      run: |
+        gh api \
+          -X POST \
+          -F "file=@${current_tar}" \
+          -F "name=huggingface-model" \
+          -F "path=$current_tar"
