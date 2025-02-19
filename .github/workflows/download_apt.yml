@@ -33,7 +33,7 @@ jobs:
         apt-cache pkgnames | grep '^[a-zA-Z]' > /tmp/package-list.txt
         awk -v start="${{ github.event.inputs.start_letter }}" -v end="${{ github.event.inputs.end_letter }}" \
         'tolower($0) ~ "^"start, tolower($0) ~ "^"end' /tmp/package-list.txt > /tmp/filter-list.txt
-        cat /tmp/filter-list.txt
+        wc -l  /tmp/filter-list.txt
 
     - name: Configure apt-mirror
       run: |
@@ -48,7 +48,7 @@ jobs:
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
         echo "set defaultarch amd64" | sudo tee -a /etc/apt/mirror.list
         cat /tmp/filter-list.txt | xargs -I {} echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse [{}]" > /tmp/ubuntu-mirror/mirror.list
-        cat /tmp/ubuntu-mirror/mirror.list
+        wc -l  /tmp/ubuntu-mirror/mirror.list
 
     - name: Run apt-mirror
       run: sudo apt-mirror
