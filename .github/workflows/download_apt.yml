@@ -14,7 +14,7 @@ on:
 
 jobs:
   apt-mirror:
-    runs-on: ubuntu-22.04-large
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Set up repository
@@ -38,7 +38,7 @@ jobs:
 
     - name: Configure apt-mirror
       run: |
-        echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee /etc/apt/mirror.list
+        echo "deb http://archive.ubuntu.com/ubuntu jammy main" | sudo tee /etc/apt/mirror.list
         echo "set base_path /mnt/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
         echo "clean /mnt/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
