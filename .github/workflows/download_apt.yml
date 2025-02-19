@@ -14,7 +14,7 @@ on:
 
 jobs:
   apt-mirror:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-large
 
     steps:
     - name: Set up repository
