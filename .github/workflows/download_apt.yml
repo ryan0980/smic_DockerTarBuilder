@@ -42,7 +42,7 @@ jobs:
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
         echo "set defaultarch amd64" | sudo tee -a /etc/apt/mirror.list
         cat /tmp/filter-list.txt | xargs -I {} echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse [{}]" | sudo tee -a /etc/apt/mirror.list
-        wc -l  /tmp/ubuntu-mirror/mirror.list
+        wc -l  /etc/apt/mirror.list
 
     - name: Run apt-mirror
       run: sudo apt-mirror
