@@ -23,6 +23,9 @@ jobs:
     - name: Install apt-mirror and grep
       run: sudo apt-get install -y apt-mirror grep
 
+    - name: Create mirror directory
+      run: sudo mkdir -p /tmp/ubuntu-mirror
+
     - name: Generate package filter list
       run: |
         apt-cache pkgnames | grep '^[a-zA-Z]' > /tmp/package-list.txt
