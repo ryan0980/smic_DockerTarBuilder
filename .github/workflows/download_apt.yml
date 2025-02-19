@@ -6,7 +6,7 @@ on:
       mirror_url:
         description: 'Mirror URL'
         required: true
-        default: 'http://archive.ubuntu.com/ubuntu jammy main'
+        default: 'jammy main'
 
 jobs:
   apt-mirror:
