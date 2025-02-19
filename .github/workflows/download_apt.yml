@@ -24,7 +24,9 @@ jobs:
       run: sudo apt-get install -y apt-mirror grep
 
     - name: Create mirror directory
-      run: sudo mkdir -p /tmp/ubuntu-mirror
+      run: |
+        sudo mkdir -p /tmp/ubuntu-mirror
+        sudo chown -R $USER:$USER /tmp/ubuntu-mirror
 
     - name: Generate package filter list
       run: |
