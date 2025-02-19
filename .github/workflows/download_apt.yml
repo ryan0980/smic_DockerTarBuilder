@@ -25,8 +25,8 @@ jobs:
 
     - name: Create mirror directory
       run: |
-        sudo mkdir -p /tmp/ubuntu-mirror
-        sudo chown -R $USER:$USER /tmp/ubuntu-mirror
+        sudo mkdir -p /mnt/ubuntu-mirror
+        sudo chown -R $USER:$USER /mnt/ubuntu-mirror
 
     - name: Generate package filter list
       run: |
@@ -40,8 +40,10 @@ jobs:
       run: |
         echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee /tmp/ubuntu-mirror/mirror.list
         echo "deb-src http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee -a /tmp/ubuntu-mirror/mirror.list
-        echo "set base_path /tmp/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
-        echo "clean /tmp/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
+        echo "deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse" | sudo tee -a /tmp/ubuntu-mirror/mirror.list
+        echo "deb-src http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse" | sudo tee -a /tmp/ubuntu-mirror/mirror.list
+        echo "set base_path /mnt/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
+        echo "clean /mnt/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
         echo "set defaultarch amd64" | sudo tee -a /etc/apt/mirror.list
         wc -l  /etc/apt/mirror.list
@@ -53,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ubuntu-mirror
-        path: /tmp/ubuntu-mirror
+        path: /mnt/ubuntu-mirror
 
     - name: Clean up
-      run: sudo rm -rf /tmp/ubuntu-mirror
+      run: sudo rm -rf /mnt/ubuntu-mirror
