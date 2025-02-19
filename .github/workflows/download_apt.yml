@@ -1,0 +1,41 @@
+name: Download Ubuntu 22.04 APT Packages
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  apt-mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up repository
+      run: sudo apt-get update
+
+    - name: Install apt-mirror
+      run: sudo apt-get install -y apt-mirror
+
+    - name: Configure apt-mirror
+      run: |
+        echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "deb-src http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "deb-src http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "deb http://archive.ubuntu.com/ubuntu jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "deb-src http://archive.ubuntu.com/ubuntu jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/mirror.list
+        echo "set base_path /tmp/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
+        echo "clean /tmp/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
+        echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
+
+    - name: Run apt-mirror
+      run: sudo apt-mirror
+
+    - name: Upload mirror to GitHub
+      uses: actions/upload-artifact@v2
+      with:
+        name: ubuntu-mirror
+        path: /tmp/ubuntu-mirror
+
+    - name: Clean up
+      run: sudo rm -rf /tmp/ubuntu-mirror
