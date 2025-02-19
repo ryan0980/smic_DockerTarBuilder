@@ -40,7 +40,7 @@ jobs:
     - name: Upload mirror to GitHub
       uses: actions/upload-artifact@v4
       with:
-        name: ubuntu-mirror
+        name: "ubuntu-mirror-${{ github.event.inputs.mirror_url }}"
         path: /mnt/ubuntu-mirror
 
     - name: Clean up
