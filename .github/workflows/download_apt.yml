@@ -38,7 +38,7 @@ jobs:
 
     - name: Configure apt-mirror
       run: |
-        echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee /tmp/ubuntu-mirror/mirror.lis
+        echo "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse" | sudo tee /tmp/ubuntu-mirror/mirror.list
         echo "set base_path /tmp/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
         echo "clean /tmp/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
