@@ -3,8 +3,16 @@ name: Download Ubuntu 22.04 APT Packages
 on:
   workflow_dispatch:
     inputs:
+      mirror_source:
+        description: 'Mirror Source'
+        required: true
+        default: 'deb'
       mirror_url:
         description: 'Mirror URL'
+        required: true
+        default: 'http://archive.ubuntu.com/ubuntu'
+      mirror_tag:
+        description: 'Mirror Tag'
         required: true
         default: 'jammy main'
 
@@ -26,8 +34,7 @@ jobs:
 
     - name: Configure apt-mirror
       run: |
-        echo "deb http://archive.ubuntu.com/ubuntu ${{ github.event.inputs.mirror_url }}" | sudo tee /etc/apt/mirror.list
-        echo "deb-src http://archive.ubuntu.com/ubuntu ${{ github.event.inputs.mirror_url }}" | sudo tee /etc/apt/mirror.list
+        echo "${{ github.event.inputs.mirror_source }} ${{ github.event.inputs.mirror_url }} ${{ github.event.inputs.mirror_tag }}" | sudo tee /etc/apt/mirror.list
         echo "set base_path /mnt/ubuntu-mirror" | sudo tee -a /etc/apt/mirror.list
         echo "clean /mnt/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
