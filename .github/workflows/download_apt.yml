@@ -57,7 +57,6 @@ jobs:
         echo "clean /mnt/ubuntu-mirror/var" | sudo tee -a /etc/apt/mirror.list
         echo "set run_postmirror 0" | sudo tee -a /etc/apt/mirror.list
         echo "set defaultarch amd64" | sudo tee -a /etc/apt/mirror.list
-        echo "include ^a.* ^b.* ^c.* ^d.* ^e.* ^f.* ^g.*" | sudo tee -a /etc/apt/mirror.list
         wc -l /etc/apt/mirror.list
 
     - name: Run apt-mirror
