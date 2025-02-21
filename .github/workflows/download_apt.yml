@@ -36,7 +36,7 @@ jobs:
         sudo mkdir -p /mnt/ubuntu-mirror
         sudo chown -R $USER:$USER /mnt/ubuntu-mirror
         sudo sed -i '/%config_variables/a \ \ \ \ "package_range" \ => \ \'\',\n'  /usr/bin/apt-mirror
-        sudo sed -i '/sub process_index/a \ \ \ \ my $package_range = get_variable("package_range");\n\n\ \ \ \ if ( $package_range ne \'\' ) {\n\ \ \ \ \ \ \ \ my ($start, $end) = split(/-/, $package_range);\n\ \ \ \ \ \ \ \ my $first_letter = substr($filename, 0, 1);\n\ \ \ \ \ \ \ \ if ( $first_letter lt $start || $first_letter gt $end ) {\n\ \ \ \ \ \ \ \ \ \ \ \ next;\n\ \ \ \ \ \ \ \ }\n\ \ \ \ }' /usr/bin/apt-mirror
+        sudo sed -i "/sub process_index/a \ \ \ \ my \$package_range = get_variable(\"package_range\");\n\n\ \ \ \ if ( \$package_range ne '' ) {\n\ \ \ \ \ \ \ \ my (\$start, \$end) = split(/-/, \$package_range);\n\ \ \ \ \ \ \ \ my \$first_letter = substr(\$filename, 0, 1);\n\ \ \ \ \ \ \ \ if ( \$first_letter lt \$start || \$first_letter gt \$end ) {\n\ \ \ \ \ \ \ \ \ \ \ \ next;\n\ \ \ \ \ \ \ \ }\n\ \ \ \ }" /usr/bin/apt-mirror
         sudo cat /usr/bin/apt-mirror
         
     - name: Create disk monitoring script
