@@ -35,24 +35,8 @@ jobs:
       run: |
         sudo mkdir -p /mnt/ubuntu-mirror
         sudo chown -R $USER:$USER /mnt/ubuntu-mirror
-        sudo sed -i '/%config_variables/a \ \ \ \ "package_range" \ => \ \'\',\n'  /usr/bin/apt-mirror
-        sudo perl -i -pe 'if (/sub process_index/) { $_ .= "    my \$package_range = get_variable(\"package_range\");\n\n    if ( \$package_range ne \'\' ) {\n        my (\$start, \$end) = split(/-/, \$package_range);\n        my \$first_letter = substr(\$filename, 0, 1);\n        if ( \$first_letter lt \$start || \$first_letter gt \$end ) {\n            next;\n        }\n    }\n"; }' /usr/bin/apt-mirror
+        sudo cp ./scripts/apt-mirror /usr/bin/apt-mirror
         sudo cat /usr/bin/apt-mirror
-        
-    - name: Create disk monitoring script
-      run: |
-        echo "#!/bin/bash" > monitor_disk.sh
-        echo "while :; do" >> monitor_disk.sh
-        echo "  if [ \$(df /mnt/ubuntu-mirror | awk 'NR==2 {print \$5}' | tr -d '%') -gt 80 ]; then" >> monitor_disk.sh
-        echo "    echo 'Disk usage exceeded 80%, deleting non-matching packages'" >> monitor_disk.sh
-        echo "    find /mnt/ubuntu-mirror -type f -name '*[^${{ github.event.inputs.letter_range }}]*.deb' -delete" >> monitor_disk.sh
-        echo "  fi" >> monitor_disk.sh
-        echo "  sleep 10" >> monitor_disk.sh
-        echo "done" >> monitor_disk.sh
-        chmod +x monitor_disk.sh
-
-    - name: Start disk monitoring script
-      run: ./monitor_disk.sh &
 
     - name: Configure apt-mirror
       run: |
