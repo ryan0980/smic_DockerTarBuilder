@@ -35,6 +35,8 @@ jobs:
       run: |
         sudo mkdir -p /mnt/ubuntu-mirror
         sudo chown -R $USER:$USER /mnt/ubuntu-mirror
+        sudo cat /usr/bin/apt-mirror
+        
     - name: Create disk monitoring script
       run: |
         echo "#!/bin/bash" > monitor_disk.sh
