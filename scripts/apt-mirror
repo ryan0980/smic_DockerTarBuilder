@@ -906,6 +906,7 @@ sub process_index
         if ( exists $lines{"Filename:"} )
         {    # Packages index
             my $filename = $lines{"Filename:"};
+            print $filename;
             my $first_letter = substr($filename, 0, 1);
 
             # Check if package_range is set and if the first letter is within the range
