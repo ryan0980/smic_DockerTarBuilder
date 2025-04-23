@@ -18,7 +18,7 @@ jobs:
       - name: Pull Docker Images and Package
         run: |
           url="${{ github.event.inputs.url }}"
-          curl -L "$url"
+          curl -L "$url" -o target.tgz
 
       - name: Upload Docker images as release assets
         uses: softprops/action-gh-release@v2.1.0
