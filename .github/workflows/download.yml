@@ -6,7 +6,7 @@ on:
       url:
         description: '请填写url'
         required: true
-        default: 'https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz'
+        default: 'https://ollama.com/download/ollama-linux-amd64.tgz'
 
 jobs:
   pull_and_package:
