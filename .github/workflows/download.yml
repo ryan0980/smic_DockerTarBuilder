@@ -1,0 +1,30 @@
+name: Get-AMD64-Docker-Images-Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: '请填写url'
+        required: true
+        default: 'https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz'
+
+jobs:
+  pull_and_package:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull Docker Images and Package
+        run: |
+          url="${{ github.event.inputs.url }}"
+          curl -L "$url"
+
+      - name: Upload Docker images as release assets
+        uses: softprops/action-gh-release@v2.1.0
+        with:
+          tag_name: DockerTarBuilder-AMD64
+          files: ${{ github.workspace }}/*.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
