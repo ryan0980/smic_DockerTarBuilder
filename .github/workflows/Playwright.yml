@@ -1,4 +1,4 @@
-name: Setup Node.js and Playwright
+name: Setup Playwright
 
 on:
   workflow_dispatch
@@ -12,18 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Install Node.js and nvm
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-          export NVM_DIR=$HOME/.nvm
-          source $NVM_DIR/nvm.sh
-          nvm install 18
-          node -v
 
       - name: Install Playwright and dependencies
         run: |
-          npm install -g playwright
-          playwright install --with-deps
+          pip install playwright==1.51.0
+          playwright install
 
       - name: Create cache archive
         run: |
