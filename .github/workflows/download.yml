@@ -1,4 +1,4 @@
-name: Get-AMD64-Docker-Images-Release
+name: Download by url
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       url:
         description: '请填写url'
         required: true
-        default: 'https://ollama.com/download/ollama-linux-amd64.tgz'
+        default: 'https://eu-central.storage.cloudconvert.com/tasks/918cade5-1169-4141-864b-541ada9873a5/d434176b-13da-4320-9154-b0a62cc5b285.gif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cloudconvert-production%2F20250429%2Ffra%2Fs3%2Faws4_request&X-Amz-Date=20250429T122444Z&X-Amz-Expires=86400&X-Amz-Signature=c53a4a631ad05d70c2c493838cc57b09ddd0eab03bfc97a089f78f1273014eb5&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22d434176b-13da-4320-9154-b0a62cc5b285.gif%22&response-content-type=image%2Fgif&x-id=GetObject'
 
 jobs:
   pull_and_package:
@@ -18,13 +18,13 @@ jobs:
       - name: Pull Docker Images and Package
         run: |
           url="${{ github.event.inputs.url }}"
-          curl -L "$url" -o /home/runner/work/DockerTarBuilder/DockerTarBuilder/target.tgz
+          curl -L "$url" -o /home/runner/work/DockerTarBuilder/DockerTarBuilder/rag.gif
 
       - name: Upload Docker images as release assets
         uses: softprops/action-gh-release@v2.1.0
         with:
           tag_name: DockerTarBuilder-AMD64
-          files: ${{ github.workspace }}/*.tgz
+          files: ${{ github.workspace }}/*.gif
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
