@@ -18,7 +18,8 @@ jobs:
       - name: Pull Docker Images and Package
         run: |
           url="${{ github.event.inputs.url }}"
-          curl -L "$url" -o /home/runner/work/DockerTarBuilder/DockerTarBuilder/rag.gif
+          filename=$(basename "$url" | cut -d '?' -f1)  # 去掉 URL 中的查询参数
+          curl -L "$url" -o "/home/runner/work/DockerTarBuilder/DockerTarBuilder/$filename"
 
       - name: Upload Docker images as release assets
         uses: softprops/action-gh-release@v2.1.0
