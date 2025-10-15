@@ -39,5 +39,5 @@ jobs:
       - name: Upload artiface
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ input.repo_id }}
+          name: ${{ inputs.repo_id }}
           path: models/
